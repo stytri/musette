@@ -854,7 +854,7 @@ static expr *parse_primary(parser *g, size_t *i) {
 	return &zen;
 }
 
-static expr *parse_apply(parser *g, size_t *i) {
+static expr *parse_binding(parser *g, size_t *i) {
 	expr *e = parse_primary(g, i), **lp = &e, *r;
 	if(e) for(token *t;
 		(t = array_at(&g->t, *i)) && (t->type & F_Primary);
@@ -867,13 +867,13 @@ static expr *parse_apply(parser *g, size_t *i) {
 }
 
 static expr *parse_operation(parser *g, size_t *i) {
-	expr *e = parse_apply(g, i), **lp = &e, *r;
+	expr *e = parse_binding(g, i), **lp = &e, *r;
 	if(e) for(token *t;
 		(t = array_at(&g->t, *i)) && (t->type & F_Operator);
 		lp = &(*lp)->r
 	) {
 		++*i;
-		if(!(r = parse_apply(g, i))) break;
+		if(!(r = parse_binding(g, i))) break;
 		*lp = expr_operator(g, t, *lp, r);
 	}
 	return e;
