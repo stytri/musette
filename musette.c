@@ -503,7 +503,7 @@ static int eval__sequence(env *v, struct expr const *e, struct expr *p) {
 }
 
 static int eval__if(env *v, struct expr const *e, struct expr *p) {
-	int  rc;
+	int  rc = OK;
 	env  w = ENV(v);
 	expr q, *c = e->l, *b = e->r;
 	if(c->eval == eval__statement) {
