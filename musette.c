@@ -140,17 +140,14 @@ static void array_clear(array *a) {
 
 static void *array_next(array *a) {
 	if(a->n == a->m) {
-		size_t x   = a->x + 1;
-		size_t m   = a->m ? a->m : 1;
+		size_t x   = a->x + 1, m = a->m ? a->m : 1;
 		a->p       = realloc(a->p, x * sizeof(*a->p));
 		a->p[a->x] = calloc(m, a->z);
 		a->m      += m;
 		a->x       = x;
 	}
-	size_t t = a->x - 1;
-	size_t i = a->n++ - (a->m / 2);
-	char  *p = a->p[t];
-	return &p[i * a->z];
+	size_t x = a->x - 1, i = a->n++ - (a->m / 2);
+	return &((char *)a->p[x])[i * a->z];
 }
 
 inline void *array_copy (array *a, void const *p) {
@@ -159,10 +156,7 @@ inline void *array_copy (array *a, void const *p) {
 
 static void *array_at(array *a, size_t i) {
 	if(i < a->n) {
-		size_t x = a->x / 2;
-		size_t h = (size_t)1 << x;
-		size_t l = h >> 1;
-		for(;;) {
+		for(size_t x = a->x / 2, h = (size_t)1 << x, l = h >> 1;;) {
 			if(i < l) l >>= 1, h >>= 1, x--;
 			else if(i >= h) l <<= 1, h <<= 1, x++;
 			else return &((char *)a->p[x])[(i-l) * a->z];
@@ -190,11 +184,7 @@ do if((foreach__array)->n > 0) { \
 } while(0)
 
 #define RETURN_CODES \
-	ENUM(FAIL, = -1) \
-	ENUM(OK) \
-	ENUM(BREAK) \
-	ENUM(CONTINUE) \
-	ENUM(RETURN)
+	ENUM(FAIL, = -1) ENUM(OK) ENUM(BREAK) ENUM(CONTINUE) ENUM(RETURN)
 #define ENUM(ENUM__name,...)  ENUM__name __VA_ARGS__,
 enum { RETURN_CODES };
 #undef ENUM
@@ -447,16 +437,8 @@ static int eval__identifier(env *v, struct expr const *e, struct expr *p) {
 }
 
 #define ENUMERATE_BINARY_OPERATORS(...) \
-	ENUM(mul,*) \
-	ENUM(div,/) \
-	ENUM(add,+) \
-	ENUM(sub,-) \
-	ENUM(eq,==) \
-	ENUM(neq,!=) \
-	ENUM(lt,<) \
-	ENUM(lte,<=) \
-	ENUM(gt,>) \
-	ENUM(gte,>=)
+	ENUM(mul,*) ENUM(div,/) ENUM(add,+) ENUM(sub,-) \
+	ENUM(eq,==) ENUM(neq,!=) ENUM(lt,<) ENUM(lte,<=) ENUM(gt,>) ENUM(gte,>=)
 
 #define ENUM(ENUM__name,ENUM__operator)  \
 static int eval__##ENUM__name(env *v, struct expr const *e, struct expr *p) { \
@@ -573,24 +555,23 @@ static int eval__apply_lambda(env *v, expr const *y, struct expr const *e, struc
 	if(y->l->eval == eval__zen) return eval(v, y->r, p);
 	int   rc;
 	env   w = ENV(v);
-	expr *l = y->l;
+	expr *l = y->l, x;
 	if(l->eval == eval__sequence) {
-		for(expr a; ; ) {
+		for(symbol *s; ; ) {
 			if(e->eval == eval__sequence) {
-				if((rc = eval(v, e->l, &a)) != OK) break;
+				if((rc = eval(v, e->l, &x)) != OK) break;
 				e = e->r;
 			} else {
-				if((rc = eval(v, e, &a)) != OK) break;
+				if((rc = eval(v, e, &x)) != OK) break;
 				e = &zen;
 			}
-			symbol *s;
 			if(l->eval == eval__sequence) {
 				s = insert(&w, l->l->t);
-				if((rc = eval(v, &a, &s->e)) != OK) break;
+				if((rc = eval(v, &x, &s->e)) != OK) break;
 				l = l->r;
 			} else {
 				s = insert(&w, l->t);
-				rc = eval(v, &a, &s->e);
+				rc = eval(v, &x, &s->e);
 				break;
 			}
 		}
@@ -649,11 +630,40 @@ static int eval__set(env *v, struct expr const *e, struct expr *p) {
 	return rc;
 }
 
+static int eval__get(env *v, struct expr const *e, struct expr *p) {
+	int rc;
+	if((rc = eval(v, e->l, p)) == OK) {
+		char  *buf = mfgets(stdin, '\n');
+		size_t i   = 0;
+		parser g   = PARSER(buf);
+		tokenize(&g);
+		for(expr x, y, *d = (expr *)(e = e->r); e; i++) {
+			if(e->eval == eval__apply) {
+				d = (expr *)(e->l);
+				e = e->r;
+			} else {
+				d = (expr *)(e);
+				e = NULL;
+			}
+			token *t = array_at(&g.t, i);
+			if(t->type == T_Integer) {
+				y = (expr){ eval__integer, .i = strntoi(t->cs, t->len, NULL, 0) };
+			} else if((t->type == T_String) || (t->type == T_Identifier)) {
+				y = (expr){ eval__string, .s = t->cs, .n = t->len };
+			} else y = zen;
+			x = (expr){ eval__set, .l = d, .r = &y };
+			rc = eval__set(v, &x, p);
+		}
+		array_clear(&g.t);
+		free(buf);
+	}
+	return rc;
+}
+
 static int eval__put(env *v, struct expr const *e, struct expr *p) {
 	int rc;
-	expr x;
-	if((rc = eval(v, e->l, &x)) == OK) {
-		FILE *out = x.i ? stderr : stdout;
+	if((rc = eval(v, e->l, p)) == OK) {
+		FILE *out = p->i ? stderr : stdout;
 		for(e = e->r; e;) {
 			if(e->eval == eval__apply) {
 				if((rc = eval(v, e->l, p)) != OK) break;
@@ -697,6 +707,7 @@ static struct {
 	{ 2, "=>", eval__lambda },
 	{ 1, "." , eval__apply },
 	{ 1, "=" , eval__set },
+	{ 2, ":>", eval__get },
 	{ 2, "<:", eval__put },
 };
 
@@ -833,11 +844,10 @@ static expr *parse_primary(parser *g, size_t *i) {
 	case T_Eof:
 		return NULL;
 	}
-	if(t) {
+	if(!t) errorf("unexpected end of input");
+	else {
 		++*i;
 		errorf("%zu: invalid token %.*s", t->ln, (int)t->len, t->cs);
-	} else {
-		errorf("unexpected end of input");
 	}
 	g->errcnt++;
 	return &zen;
