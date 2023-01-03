@@ -229,10 +229,6 @@ inline bool eq(token const *cs, token const *ct) {
 	return (cs->len == ct->len) && !memcmp(cs->cs, ct->cs, ct->len);
 }
 
-inline bool eqs(token const *cs, char const *ct, size_t n) {
-	return (cs->len == n) && !memcmp(cs->cs, ct, n);
-}
-
 typedef struct expr {
 	int        (*eval)(env *v, struct expr const *e, struct expr *p);
 	union {
@@ -533,7 +529,7 @@ static int eval__while(env *v, struct expr const *e, struct expr *p) {
 	}
 	if((rc == OK) && ((rc = eval(&w, c, &q)) == OK)) {
 		if(!q.i) {
-			rc = (b->eval == eval__alternate) ? rc = eval(&w, b->r, p) : OK;
+			rc = (b->eval == eval__alternate) ? eval(&w, b->r, p) : OK;
 		} else {
 			if(b->eval == eval__alternate) b = b->l;
 			if(b->eval == eval__scope) b = b->l;
