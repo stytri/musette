@@ -72,7 +72,9 @@ alternate consequents of conditional expressions.
 
 '**`=`**'    assign : creates a symbol named by the identifier in the left-hand-expression ans assigns it the value of the right-hand-expression. If the right-hand-expression is an anonymous-function then a named-function is created.
 
-'**`<:`**'    output : outputs the string representation of it arguments; output is automatically terminated with a new-line. Arguments are not delimeted; if an expression is given as an argument, it should be enclosed in either **`{`** **`}`**, or **`[`** **`]`** brackets.
+'**`<:`**'    output : outputs the string representation of its arguments; output is automatically terminated with a new-line. Arguments are not delimeted; if an expression is given as an argument, it should be enclosed in either **`{`** **`}`**, or **`[`** **`]`** brackets.
+
+'**`:>`**'    input : reads a line from stdin, and tokenizes it. Integer and string tokens only are acceptable; they are assigned in order to the identifiers given as arguments. As per output, arguments are separated by spaces.
 
 '**\`**'_identifier_'**\`**'    User defined named operator, where _identifier_ is the name of a function that _should_ take 2 aruments.
 
