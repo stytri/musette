@@ -62,6 +62,13 @@ inline void *xrealloc(void *p, size_t z, char const *file, int line) {
 }
 #define realloc(realloc__p,realloc__z)  xrealloc(realloc__p,realloc__z,__FILE__,__LINE__)
 
+inline char *xstrndup(char const *cs, size_t n, char const *file, int line) {
+	char *s = memcpy(xmalloc(n+1, file, line), cs, n);
+	s[n] = '\0';
+	return s;
+}
+#define strndup(strndup__cs,strndup__n) (xstrndup)(strndup__cs,strndup__n,__FILE__,__LINE__)
+
 inline void xfree(void const *p) {
 	free((void *)p);
 }
@@ -79,23 +86,14 @@ static char *mfgets(FILE *in, int end) {
 	return buf;
 }
 
-static int isbdigit(int c) { return (c == '0') || (c == '1'); }
 static int isodigit(int c) { return (c >= '0') && (c <  '8'); }
 
 static int strntoi(char const *cs, size_t n, char **end, int b) {
 	char t[(sizeof(int)*CHAR_BIT)+4];
 	if(n >= (sizeof(t)-1)) n = (sizeof(t)-1);
 	memcpy(t, cs, n), t[n] = '\0';
-	char const *ct = t;
-	if((b == 0) && (n > 1) && (*ct == '0')) {
-		switch(toupper(*(ct+1))) {
-		default : ct += 1, b =  8; break;
-		case 'B': ct += 2, b =  2; break;
-		case 'X': ct += 2, b = 16; break;
-		}
-	}
-	int v = (int)strtoll(ct, end, b);
-	if(end) *end = (char *)(cs + (*end - ct));
+	int v = (int)strtoll(t, end, b);
+	if(end) *end = (char *)(cs + (*end - t));
 	return v;
 }
 
@@ -270,7 +268,7 @@ static symbol *lookup(env *v, token *t) {
 static symbol *insert(env *v, token *t) {
 	symbol *y = array_next(&v->y);
 	y->t.type = t->type;
-	y->t.cs   = strncpy(malloc(t->len+1), t->cs, t->len);
+	y->t.cs   = strndup(t->cs, t->len);
 	y->t.len  = t->len;
 	y->t.ln   = t->ln;
 	return y;
@@ -385,19 +383,10 @@ static parser *tokenize(parser *g) {
 				continue;
 			}
 			if(isdigit(c)) {
-				int (*is_digit)(int) = isdigit;
 				t     = array_next(&g->t);
-				t->cs = g->next++;
+				t->cs = g->next;
 				t->ln = g->ln;
-				if(c == '0') {
-					for(; (c = *g->next) == '0'; t->cs = g->next++);
-					switch(toupper(c)) {
-					default : is_digit = isodigit;            break;
-					case 'B': is_digit = isbdigit, g->next++; break;
-					case 'X': is_digit = isxdigit, g->next++; break;
-					}
-				}
-				for(; is_digit(c = *g->next); g->next++);
+				(void)strtoll(g->next, (char **)&g->next, 0);
 				t->len  = (size_t)(g->next - t->cs);
 				t->type = T_Integer;
 				continue;
@@ -648,7 +637,7 @@ static int eval__set(env *v, struct expr const *e, struct expr *p) {
 			if(y->e.eval == eval__string) free(y->e.s);
 			if(p->eval == eval__string) {
 				y->e.eval = eval__string;
-				y->e.s    = strncpy(malloc(p->n+1), p->s, p->n);
+				y->e.s    = strndup(p->s, p->n);
 				y->e.n    = p->n;
 			} else if(p->eval == eval__lambda) {
 				y->e.eval = eval__lambda;
@@ -902,10 +891,10 @@ static expr *clone_expr(env *v, expr *e) {
 		e = array_copy(&v->e, e);
 		if(e->eval == eval__identifier) {
 			token *t = array_copy(&v->t, e->t);
-			t->cs = strncpy(malloc(t->len+1), t->cs, t->len);
+			t->cs = strndup(t->cs, t->len);
 			e->t = t;
 		} else if(e->eval == eval__string) {
-			e->s = strncpy(malloc(e->n+1), e->s, e->n);
+			e->s = strndup(e->s, e->n);
 		} else if((e->eval != eval__zen) && (e->eval != eval__integer)) {
 			e->l = clone_expr(v, e->l);
 			e->r = clone_expr(v, e->r);
@@ -947,7 +936,7 @@ static int evaluate(env *v, char const *s, expr *p) {
 }
 
 static char const *predef[] = {
-	"VERSION=230101", NULL
+	"VERSION=230103", NULL
 };
 
 static bool isopt(char const *ct, char const *cs, char const *cl) {
