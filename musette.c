@@ -826,6 +826,10 @@ static expr *parse_primary(parser *g, size_t *i) {
 		}
 		t = q;
 		break;
+	case T_Operator:
+		++*i;
+		e = parse_primary(g, i);
+		return expr_operator(g, t, &zen, e);
 	case T_Eof:
 		return NULL;
 	}
