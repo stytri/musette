@@ -925,7 +925,7 @@ static void env_clear(env *v) {
 static int evaluate(env *v, char const *s, expr *p) {
 	parser g = PARSER(s);
 	expr  *e = parse(tokenize(&g));
-	int    r = eval(v, e, p);
+	int    r = g.errcnt ? FAIL : eval(v, e, p);
 	array_clear(&g.e);
 	array_clear(&g.t);
 	return r;
