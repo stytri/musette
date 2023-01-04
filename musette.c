@@ -636,7 +636,7 @@ static int eval__get(env *v, struct expr const *e, struct expr *p) {
 		size_t i   = 0;
 		parser g   = PARSER(buf);
 		tokenize(&g);
-		for(expr x, y, *d = (expr *)(e = e->r); e; i++) {
+		for(expr x, y, *d = (expr *)(e = e->r); e; ) {
 			if(e->eval == eval__apply) {
 				d = (expr *)(e->l);
 				e = e->r;
