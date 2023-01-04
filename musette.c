@@ -156,11 +156,10 @@ inline void *array_copy (array *a, void const *p) {
 
 static void *array_at(array *a, size_t i) {
 	if(i < a->n) {
-		for(size_t x = a->x / 2, h = (size_t)1 << x, l = h >> 1;;) {
+		for(size_t x = a->x / 2, h = (size_t)1 << x, l = h >> 1;;)
 			if(i < l) l >>= 1, h >>= 1, x--;
 			else if(i >= h) l <<= 1, h <<= 1, x++;
 			else return &((char *)a->p[x])[(i-l) * a->z];
-		}
 	}
 	return NULL;
 }
@@ -645,12 +644,14 @@ static int eval__get(env *v, struct expr const *e, struct expr *p) {
 				d = (expr *)(e);
 				e = NULL;
 			}
-			token *t = array_at(&g.t, i);
-			if(t->type == T_Integer) {
-				y = (expr){ eval__integer, .i = strntoi(t->cs, t->len, NULL, 0) };
-			} else if((t->type == T_String) || (t->type == T_Identifier)) {
-				y = (expr){ eval__string, .s = t->cs, .n = t->len };
-			} else y = zen;
+			for(token *t; (t = array_at(&g.t, i++))->type != T_Eof; y = zen)
+				if(t->type == T_Integer) {
+					y = (expr){ eval__integer, .i = strntoi(t->cs, t->len, NULL, 0) };
+					break;
+				} else if((t->type == T_String) || (t->type == T_Identifier)) {
+					y = (expr){ eval__string, .s = t->cs, .n = t->len };
+					break;
+				}
 			x = (expr){ eval__set, .l = d, .r = &y };
 			rc = eval__set(v, &x, p);
 		}
