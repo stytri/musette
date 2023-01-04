@@ -109,7 +109,7 @@ static void fprints(FILE *out, size_t n, char const *s) {
 			s  = t;
 			break;
 		default :
-			if((c < '0') && (c > '7')) break;
+			if((c < '0') || (c > '7')) break;
 			c  = strntoi(s-1, (n <= 3) ? n - 1 : 3, &t, 8);
 			n -= (t-s) + 1;
 			s  = t;
