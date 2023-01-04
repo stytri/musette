@@ -95,8 +95,8 @@ static int strntoi(char const *cs, size_t n, char **end, int b) {
 	return v;
 }
 
-static void prints(size_t n, char const *s) {
-	for(int c; n > 0; putchar(c), n--) {
+static void fprints(FILE *out, size_t n, char const *s) {
+	for(int c; n > 0; fputc(c, out), n--) {
 		if((c = *s++) == '\\') switch((c = *s++)) {
 			char *t;
 		case 't': n-- , c = '\t';        break;
@@ -116,6 +116,8 @@ static void prints(size_t n, char const *s) {
 		}
 	}
 }
+
+inline void prints(size_t n, char const *s) { fprints(stdout, n, s); }
 
 typedef struct {
 	size_t z;
@@ -670,8 +672,8 @@ static int eval__put(env *v, struct expr const *e, struct expr *p) {
 				if((rc = eval(v, e, p)) != OK) break;
 				e = NULL;
 			}
-			if(p->eval == eval__integer) printf("%i", p->i);
-			else if(p->eval == eval__string) prints(p->n, p->s);
+			if(p->eval == eval__integer) fprintf(out, "%i", p->i);
+			else if(p->eval == eval__string) fprints(out, p->n, p->s);
 			else {
 				errorf("%zu: invalid argument", p->ln);
 				rc = FAIL;
