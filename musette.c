@@ -650,7 +650,7 @@ static int eval__get(env *v, struct expr const *e, struct expr *p) {
 				y = (expr){ eval__integer, .i = strntoi(t->cs, t->len, NULL, 0) };
 			} else if((t->type == T_String) || (t->type == T_Identifier)) {
 				y = (expr){ eval__string, .s = t->cs, .n = t->len };
-			} else continue;
+			} else y = zen;
 			x = (expr){ eval__set, .l = d, .r = &y };
 			rc = eval__set(v, &x, p);
 		}
