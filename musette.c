@@ -86,8 +86,6 @@ static char *mfgets(FILE *in, int end) {
 	return buf;
 }
 
-static int isodigit(int c) { return (c >= '0') && (c <  '8'); }
-
 static int strntoi(char const *cs, size_t n, char **end, int b) {
 	char t[(sizeof(int)*CHAR_BIT)+4];
 	if(n >= (sizeof(t)-1)) n = (sizeof(t)-1);
@@ -111,7 +109,7 @@ static void prints(size_t n, char const *s) {
 			s  = t;
 			break;
 		default :
-			if(!isodigit(c)) break;
+			if((c < '0') && (c > '7')) break;
 			c  = strntoi(s-1, (n <= 3) ? n - 1 : 3, &t, 8);
 			n -= (t-s) + 1;
 			s  = t;
