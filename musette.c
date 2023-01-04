@@ -175,11 +175,10 @@ do if((foreach__array)->n > 0) { \
 			foreach__action; \
 		} \
 	} \
-	if(foreach__rem > 0) { \
+	if(foreach__rem > 0) \
 		for(foreach__ptr = (foreach__array)->p[foreach__end]; foreach__rem--; foreach__ptr++) { \
 			foreach__action; \
 		} \
-	} \
 } while(0)
 
 #define RETURN_CODES \
@@ -426,8 +425,7 @@ static int eval__string(env *v, struct expr const *e, struct expr *p) {
 }
 
 static int eval__identifier(env *v, struct expr const *e, struct expr *p) {
-	symbol *y = lookup(v, e->t);
-	if(y) {
+	for(symbol *y = lookup(v, e->t); y; ) {
 		*p = y->e;
 		return OK;
 	}
@@ -488,13 +486,12 @@ static int eval__if(env *v, struct expr const *e, struct expr *p) {
 		c = c->r;
 	}
 	if((rc == OK) && ((rc = eval(&w, c, &q)) == OK)) {
-		if(!q.i) {
-			rc = (b->eval == eval__alternate) ? eval(&w, b->r, p) : OK;
-		} else {
+		if(q.i) {
 			if(b->eval == eval__alternate) b = b->l;
 			if(b->eval == eval__scope) b = b->l;
 			rc = eval(&w, b, p);
-		}
+		} else
+			rc = (b->eval == eval__alternate) ? eval(&w, b->r, p) : OK;
 	}
 	env_clear(&w);
 	return rc;
@@ -644,14 +641,17 @@ static int eval__get(env *v, struct expr const *e, struct expr *p) {
 				d = (expr *)(e);
 				e = NULL;
 			}
+			int sign = 1;
 			for(token *t; (t = array_at(&g.t, i++))->type != T_Eof; y = zen)
 				if(t->type == T_Integer) {
-					y = (expr){ eval__integer, .i = strntoi(t->cs, t->len, NULL, 0) };
+					y = (expr){ eval__integer, .i = sign * strntoi(t->cs, t->len, NULL, 0) };
 					break;
 				} else if((t->type == T_String) || (t->type == T_Identifier)) {
 					y = (expr){ eval__string, .s = t->cs, .n = t->len };
 					break;
-				}
+				} else if(t->type == T_Operator) {
+					if((t->len == 1) && (*t->cs == '-')) sign = -1;
+				} else sign = 1;
 			x = (expr){ eval__set, .l = d, .r = &y };
 			rc = eval__set(v, &x, p);
 		}
