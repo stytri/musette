@@ -946,7 +946,7 @@ static int evaluate(env *v, char const *s, expr *p) {
 }
 
 static char const *predef[] = {
-	"VERSION=230103", NULL
+	"VERSION=230104", NULL
 };
 
 static bool isopt(char const *ct, char const *cs, char const *cl) {
