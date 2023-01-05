@@ -955,7 +955,7 @@ static bool isopt(char const *ct, char const *cs, char const *cl) {
 }
 
 static FILE *mufopen(char const *cs) {
-	cs = strcat(strcpy(malloc(strlen(cs)+4), cs), ".mu");
+	char const *ct = strcat(strcpy(malloc(strlen(cs)+4), cs), ".mu");
 	FILE *in; (void)((in = fopen(ct, "r")) || (in = fopen(cs, "r")));
 	free(cs);
 	return in;
