@@ -5,8 +5,8 @@ square = x => x x;
 (a = 1; a <= 10) ?* {
 	b = a, a = a + 1;
     (b == 5) ? (
-        _<:"Missing "b"!";
-		_?._;
+        <:"Missing "b"!";
+		?.;
     );
-	_<:"I can compute that "b"*"b" = "{square b};
+	<:"I can compute that "b"*"b" = "{square b};
 };
