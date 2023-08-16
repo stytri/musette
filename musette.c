@@ -799,6 +799,7 @@ static expr *parse_primary(parser *g, size_t *i) {
 	case T_Zen:
 		++*i;
 	case T_EndExpression: case T_EndScope: case T_EndList:
+	case T_Operator: case T_OperatorIdentifier:
 		return &zen;
 	case T_Integer:
 		++*i;
@@ -838,10 +839,6 @@ static expr *parse_primary(parser *g, size_t *i) {
 		}
 		t = q;
 		break;
-	case T_Operator:
-		++*i;
-		e = parse_primary(g, i);
-		return expr_operator(g, t, &zen, e);
 	case T_Eof:
 		return NULL;
 	}
@@ -868,11 +865,15 @@ static expr *parse_binding(parser *g, size_t *i) {
 
 static expr *parse_operation(parser *g, size_t *i) {
 	expr *e = parse_binding(g, i), **lp = &e, *r;
-	if(e) for(token *t;
+	if(e) for(token *t, *f;
 		(t = array_at(&g->t, *i)) && (t->type & F_Operator);
 		lp = &(*lp)->r
 	) {
 		++*i;
+		if((f = array_at(&g->t, *i)) && (f->type & F_Delimeter)) {
+			*lp = expr_operator(g, t, *lp, &zen);
+			break;
+		}
 		if(!(r = parse_binding(g, i))) break;
 		*lp = expr_operator(g, t, *lp, r);
 	}
@@ -947,7 +948,7 @@ static int evaluate(env *v, char const *s, expr *p) {
 }
 
 static char const *predef[] = {
-	"VERSION=230105", NULL
+	"VERSION=230816", NULL
 };
 
 static bool isopt(char const *ct, char const *cs, char const *cl) {
