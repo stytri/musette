@@ -56,7 +56,7 @@ alternate consequents of conditional expressions.
 
 '**`<<`**'    bitwise left shift
 
-'**`>>`**'    bitwise left shift
+'**`>>`**'    bitwise right shift
 
 '**`||`**'    logical OR
 
