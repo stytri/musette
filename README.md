@@ -46,6 +46,8 @@ alternate consequents of conditional expressions.
 
 '**`/`**'    division
 
+'**`%`**'    division
+
 '**`|`**'    bitwise OR
 
 '**`^`**'    bitwise XOR
