@@ -58,9 +58,9 @@ alternate consequents of conditional expressions.
 
 '**`>=`**'    greater than or equal
 
-'**`?`**'    if : left-hand-expression is the condition, right-hand-expression is the consequent(s). Automatically enters a new scope. A **`;`** delimeter in the condition indicates that the left-hand-part is intializtion, and the right-hand-part is the evaluated condition.
+'**`?`**'    if : left-hand-expression is the condition, right-hand-expression is the consequent(s). Automatically enters a new scope. A **`;`** delimeter in the condition indicates that the left-hand-part is intialization, and the right-hand-part is the evaluated condition.
 
-'**`?*`**'    while : left-hand-expression is the condition, right-hand-expression is the loo body. Automatically enters a new scope. A **`;`** delimeter in the condition indicates that the left-hand-part is intializtion, and the right-hand-part is the evaluated condition.
+'**`?*`**'    while : left-hand-expression is the condition, right-hand-expression is the loo body. Automatically enters a new scope. A **`;`** delimeter in the condition indicates that the left-hand-part is intialization, and the right-hand-part is the evaluated condition.
 
 '**`?/`**'    break : left-hand-expression specifies a pre-condition, or **`_`** if there is no condition; right-hand-expression is evaluated if the pre-condition is satisfied.
 
@@ -101,3 +101,15 @@ _bracketed-expression_   An expression, in brackets.
 '**`VERSION`**'    Gives the program's version number as an _integer_.
 
 '**`_`**'    Represents **Z**ero **E**mpty **N**ull (ZEN), so that we do not use too many parenthesis -  this is not lisp ;)
+
+## Functions
+
+Functions are created by assignment of a lambda expression.
+
+A function with two arguments can be used as a binary operator by encapsulating the function name with a backtick:
+```
+and=(a,b)=>(a!=0)*(b!=0);
+x=3;
+y=6;
+(x`and`y)? <: "true";
+```
