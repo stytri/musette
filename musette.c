@@ -436,7 +436,7 @@ static int eval__identifier(env *v, struct expr const *e, struct expr *p) {
 #define ENUMERATE_BINARY_OPERATORS(...) \
 	ENUM(mul,*) ENUM(div,/)  ENUM(mod,%) ENUM(add,+)  ENUM(sub,-) \
 	ENUM(eq,==) ENUM(neq,!=) ENUM(lt,<)  ENUM(lte,<=) ENUM(gt,>)   ENUM(gte,>=) \
-	ENUM(or,||) ENUM(and,&&) ENUM(bor,^) ENUM(bxor,|) ENUM(band,&) ENUM(shl,<<) ENUM(shr,>>)
+	ENUM(or,||) ENUM(and,&&) ENUM(bor,|) ENUM(bxor,^) ENUM(band,&) ENUM(shl,<<) ENUM(shr,>>)
 #define ENUM(ENUM__name,ENUM__operator)  \
 static int eval__##ENUM__name(env *v, struct expr const *e, struct expr *p) { \
 	expr x; \
