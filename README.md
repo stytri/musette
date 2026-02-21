@@ -46,6 +46,20 @@ alternate consequents of conditional expressions.
 
 '**`/`**'    division
 
+'**`|`**'    bitwise OR
+
+'**`^`**'    bitwise XOR
+
+'**`&`**'    bitwise AND
+
+'**`<<`**'    bitwise left shift
+
+'**`>>`**'    bitwise left shift
+
+'**`||`**'    logical OR
+
+'**`&&`**'    logical AND
+
 '**`==`**'    equal
 
 '**`!=`**'    not equal
